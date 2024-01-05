@@ -59,11 +59,10 @@ router.get("/:id", async function (req, res) {
  * {comp_code, amt}
  * returns {invoice:
  * {id, comp_code, amt, paid, add_date, paid_date,} */
-//TODO: be more description in the error message for bad request
 
 router.post('/', async function (req, res) {
   if (req.body === undefined) {
-    throw new BadRequestError("Invalid Request");
+    throw new BadRequestError();
   }
 
   const comp_code = req.body.comp_code;
