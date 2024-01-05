@@ -56,8 +56,7 @@ router.get("/:id", async function (req, res) {
 
 /** POST /-
  * {comp_code, amt}
- * returns
- * {invoice:
+ * returns {invoice:
  * {id, comp_code, amt, paid, add_date, paid_date,} */
 
 router.post('/', async function (req, res) {
@@ -80,15 +79,63 @@ router.post('/', async function (req, res) {
 
   const results = await db.query(`
     INSERT INTO invoices (comp_code, amt)
-    VALUES ($1, $2)
-    RETURNING id, comp_code, amt, paid, add_date, paid_date`,
+        VALUES ($1, $2)
+        RETURNING id, comp_code, amt, paid, add_date, paid_date`,
     [comp_code, req.body.amt]
   );
 
   const invoice = results.rows[0];
 
   return res.json({ invoice });
-})
+});
+
+/** PUT / -
+ * {amt} returns {company: {code, name, description}}
+ * returns {invoice:
+ * {id, comp_code, amt, paid, add_date, paid_date,} */
+
+router.put('/:id', async function (req, res) {
+  if (req.body === undefined) {
+    throw new BadRequestError();
+  }
+
+  const id = req.params.id;
+  const results = await db.query(
+    `UPDATE invoices
+        SET amt = $1
+        WHERE id = $2
+        RETURNING id, comp_code, amt, paid, add_date, paid_date`,
+    [req.body.amt, id]
+  );
+
+  const invoice = results.rows[0];
+
+  if (!invoice) {
+    throw new NotFoundError(`Invoice id ${id} not found`);
+  }
+
+  return res.json({ invoice });
+});
+
+/** DELETE / - returns {status: "deleted"}*/
+
+router.delete("/:id", async function (req, res) {
+  const id = req.params.id;
+  const results = await db.query(
+    `DELETE FROM invoices
+        WHERE id = $1
+        RETURNING id`,
+    [id]
+  );
+
+  const invoice = results.rows[0];
+
+  if (!invoice) {
+    throw new NotFoundError(`Invoice id ${id} not found`);
+  }
+
+  return res.json({status: "deleted"});
+});
 
 
 
