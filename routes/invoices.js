@@ -54,5 +54,42 @@ router.get("/:id", async function (req, res) {
   return res.json({ invoice });
 });
 
+/** POST /-
+ * {comp_code, amt}
+ * returns
+ * {invoice:
+ * {id, comp_code, amt, paid, add_date, paid_date,} */
+
+router.post('/', async function (req, res) {
+  if (req.body === undefined) {
+    throw new BadRequestError("Invalid Request");
+  }
+
+  const comp_code = req.body.comp_code;
+
+  const compResults = await db.query(
+    `SELECT code, name, description
+        FROM companies
+        WHERE code = $1`,
+    [comp_code]
+  );
+
+  if (!compResults) {
+    throw new NotFoundError(`${comp_code} not found`);
+  }
+
+  const results = await db.query(`
+    INSERT INTO invoices (comp_code, amt)
+    VALUES ($1, $2)
+    RETURNING id, comp_code, amt, paid, add_date, paid_date`,
+    [comp_code, req.body.amt]
+  );
+
+  const invoice = results.rows[0];
+
+  return res.json({ invoice });
+})
+
+
 
 module.exports = router;
