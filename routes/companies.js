@@ -21,7 +21,8 @@ router.get("/", async function (req, res) {
   return res.json({ companies });
 });
 
-/** GET /[code] - returns {company: {code, name, description}} */
+/** GET /[code] -
+ * returns {company: {code, name, description, invoices: [id, ...]}} */
 
 router.get('/:code', async function (req, res) {
   const code = req.params.code;
@@ -34,9 +35,20 @@ router.get('/:code', async function (req, res) {
 
   const company = results.rows[0];
 
-  if (company === undefined) {
-    throw new NotFoundError(`no matching company: ${code}`);
+  if (!company) {
+    throw new NotFoundError(`${code} not found`);
   }
+
+  const invResults = await db.query(
+    `SELECT id
+        FROM invoices
+        WHERE comp_code = $1
+        ORDER BY id`,
+    [code]
+  );
+  const invoiceIds = invResults.rows.map(inv => inv.id);
+
+  company.invoices = invoiceIds;
 
   return res.json({ company });
 });
@@ -104,7 +116,7 @@ router.delete("/:code", async function (req, res) {
     throw new NotFoundError(`${code} not found`);
   }
 
-  return res.json({status: "deleted"});
+  return res.json({ status: "deleted" });
 });
 
 
