@@ -9,6 +9,7 @@ const db = require("../db");
 const router = new express.Router();
 
 
+
 /** GET / - returns {companies: [{code, name}, ...]} */
 
 router.get("/", async function (req, res) {

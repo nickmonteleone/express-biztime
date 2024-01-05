@@ -59,6 +59,7 @@ router.get("/:id", async function (req, res) {
  * {comp_code, amt}
  * returns {invoice:
  * {id, comp_code, amt, paid, add_date, paid_date,} */
+//TODO: be more description in the error message for bad request
 
 router.post('/', async function (req, res) {
   if (req.body === undefined) {
@@ -68,13 +69,15 @@ router.post('/', async function (req, res) {
   const comp_code = req.body.comp_code;
 
   const compResults = await db.query(
-    `SELECT code, name, description
+    `SELECT code
         FROM companies
         WHERE code = $1`,
     [comp_code]
   );
 
-  if (!compResults) {
+  const company = compResults.rows[0];
+
+  if (!company) {
     throw new NotFoundError(`${comp_code} not found`);
   }
 
