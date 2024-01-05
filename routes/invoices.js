@@ -14,7 +14,8 @@ const router = new express.Router();
 router.get("/", async function (req, res) {
   const results = await db.query(
     `SELECT id, comp_code
-        FROM invoices`
+        FROM invoices
+        ORDER BY id`
   );
   const invoices = results.rows;
 
